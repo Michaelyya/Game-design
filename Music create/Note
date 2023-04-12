@@ -1,0 +1,132 @@
+import musicalbeeps
+player = musicalbeeps.Player()
+#player.play_note("B4",1)
+class Note:
+    """contain all information about a single musical note and operations that can be performed on it
+    Instance attributes
+    *duration: float
+    *pitch: str
+    *octave: int
+    *accidental_value: str
+    """
+    OCTAVE_MIN = 1
+    OCTAVE_MAX = 7
+    
+    def __init__(self, duration, pitch, octave = 1, accidental = 'natural'):
+        """(float, str, int, str) -> NoneType
+        A constructor that takes a duration, pitch, octave and accidental value. The
+        constructor should create instance attributes for each input value.
+        >>> note = Note(2.0, "B", 4, "natural")
+        >>> note.octave
+        4
+        >>> note.duration
+        2.0
+        >>> note.accidental_value
+        'natural'
+        >>> note.pitch
+        'B'
+        
+        >>> note = Note("2", "B", 4, "natural")
+        Traceback (most recent call last):
+        AssertionError: Duration should be a positive float
+        
+        >>> note = Note(2.0, 'H', 4, "natural")
+        AssertionError: pitch should be a single letter from A to G, or R
+        
+        >>> note = Note(2.0, 'B', 9, "natural")
+        AssertionError: octave should be an integer from 1 to 7
+        
+        >>> note = Note(2.0, 'B', 3, "IJJI")
+        Traceback (most recent call last):
+        AssertionError: accidental value should either be sharp, flat or natural in lowercase
+        """
+        self.duration = duration
+        self.pitch = pitch
+        self.octave = octave
+        self.accidental = accidental
+        if type(duration) != float or duration <= 0:
+            raise AssertionError("Duration should be a positive float")
+        elif type(pitch)!= str or pitch not in "ABCDEFGR" or len(pitch) != 1:
+            raise AssertionError("pitch should be a single letter from A to G, or R")
+        elif type(octave) != int or octave < 1 or octave > 7:
+            raise AssertionError("octave should be an integer from 1 to 7")
+        elif accidental != "sharp" and accidental != "flat" and accidental != "natural":
+            raise AssertionError("accidental value should either be sharp, flat or natural in lowercase")
+        
+        
+    def __str__(self):
+        """() -> str
+        returns a string of the format 'DURATION PITCH OCTAVE ACCIDENTAL' where
+        each of the four words refer to the appropriate instance attributes.
+        returns a string of the format 'DURATION PITCH OCTAVE ACCIDENTAL' where each of the four words refer to the appropriate instance attributes.
+        >>> note = Note(2.0, "B", 4, "natural")
+        >>> print(note)
+        2.0 B 4 natural
+        
+        >>> note = Note(33.0, "B", 5, "sharp")
+        >>> print(note)
+        33.0 B 5 sharp
+        
+        >>> note = Note(10.0, "E", 2,"natural")
+        >>> print(note)
+        10.0 E 2 natural
+        """
+        return str(float(self.duration)) + " " + self.pitch + " " + str(self.octave) + " " + self.accidental.lower()
+    
+    
+    def play(self, player):
+        """ () -> NoneType
+        An instance method play that takes one explicit input corresponding to a music player object. The method should construct the note string
+        that the play_note method accepts, then pass the note string and duration to it so that the note can be played through the speakers.
+        >>> note = Note(33.0, "R", 5, "sharp")
+        >>> note.play(player)
+        Pausing for 33.0s
+        
+        >>> note = Note(10.0, "B", 3, "flat")
+        >>> note.play(player)
+        Playing B3b (233.08 Hz) for 10.0s
+        
+        >>> note = Note(3.0, "C")
+        >>> note.play(player)
+        Playing C1 (32.70 Hz) for 3.0s
+        """
+        
+        if self.pitch == "R":
+            note_string = "pause"
+        else:
+            if self.accidental.lower() == "sharp":
+                note_string = self.pitch + str(self.octave)+ "#"
+            elif self.accidental.lower() == "flat":
+                note_string = self.pitch + str(self.octave)+ "b"
+            else:
+                note_string = self.pitch + str(self.octave)
+            
+        player.play_note(note_string, self.duration)
+import musicalbeeps
+player = musicalbeeps.Player()
+#player.play_note("B4",1)
+class Note:
+    """contain all information about a single musical note and operations that can be performed on it
+    Instance attributes
+    *duration: float
+    *pitch: str
+    *octave: int
+    *accidental_value: str
+    """
+    OCTAVE_MIN = 1
+    OCTAVE_MAX = 7
+    
+    def __init__(self, duration, pitch, octave = 1, accidental = 'natural'):
+        """(float, str, int, str) -> NoneType
+        A constructor that takes a duration, pitch, octave and accidental value. The
+        constructor should create instance attributes for each input value.
+        >>> note = Note(2.0, "B", 4, "natural")
+        >>> note.octave
+        4
+        >>> note.duration
+        2.0
+        >>> note.accidental_value
+        'natural'
+        >>> note.pitch
+        'B'
+        
