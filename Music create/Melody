@@ -1,0 +1,509 @@
+from note import Note
+from note import player
+import musicalbeeps
+class Melody:
+    """a class Melody which will store information about a melody of many notes, and operations to perform on them
+    Then it creates some instance attributes:
+        * title: str
+        * author: str
+        * notes: list
+        """
+    
+    def __init__(self, file_name):
+        """A constructor that takes a filename (string) as explicit input.
+        >>> m = Melody("birthday.txt")
+        >>> m.title
+        'Happy Birthday'
+        >>>m.author
+        'Patty and Mildred J. Hill'
+
+        >>> s = Melody("my_song")
+        >>> s.author
+        'Jay Chou'
+        >>>s.title
+        'Qing Hua Ci (Blue and White Porcelain)'
+        
+        >>> h = Melody("hotcrossbuns.txt")
+        >>> h.title
+        'Hot Cross Buns'
+        >>> h.author
+        'Traditional'
+        """
+        song = open(file_name, 'r')
+        lyrics = song.read()
+        song.close()
+        self.title = lyrics[:lyrics.find('\n')]
+        lyrics = lyrics[len(self.title) + 1:]
+        self.author = lyrics[:lyrics.find('\n')]
+        lyrics = lyrics[len(self.author) + 1:]
+        lyrics_list = lyrics.split("\n")
+
+        self.notes = []
+        i = 0
+        meet1 = ':)'
+        meet2 = ':)'
+        for line in lyrics_list:
+            note_list = line.split(" ")
+            if note_list[1] == "R":
+                duration = note_list[0]
+                pitch = note_list[1]
+                repeat = note_list[2]
+                note = Note(float(duration), pitch)
+            else:    
+                duration = note_list[0]
+                pitch = note_list[1]
+                octave = note_list[2]
+                accidental = note_list[3]
+                repeat = note_list[4]
+                note = Note(float(duration), pitch, int(octave), accidental.lower())
+            if repeat == 'true' and meet1 == ':)':
+                meet1 = i
+            elif repeat == 'true':
+                meet2 = i
+            self.notes.append(note)
+            if meet1 !=':)' and meet2 != ':)':
+                for num in range(meet1,meet2+1):
+                    self.notes.append(self.notes[num])
+                    i += 1
+                meet1 = ':)'
+                meet2 = ':)'
+            i += 1
+
+    
+    def play(self, player):
+        """ (player) -> NoneType
+        takes a music player object as explicit input, and calls the play method on each Note object of the notes instance
+        attribute in order, passing the music player object time as argument.
+        """
+        for note in self.notes:
+            note.play(player)
+        
+        
+    def get_total_duration(self):
+        """ () -> float
+        takes no explicit inputs and returns the total duration of the song as a float.
+        >>> m = Melody("birthday.txt")
+        >>> m.get_total_duration()
+        15.0
+        
+        >>> s = Melody("my_song.txt")
+        >>> s.get_total_duration()
+        143.75
+        
+        >>> h = Melody("hotcrossbuns.txt")
+        >>> h.get_total_duration()
+        8.0
+        """
+        total_duration = 0
+        for i in self.notes:
+            total_duration += i.duration
+        return total_duration
+    
+    def helper(self, num):
+        """ (int) -> Boolean
+        This is a helper function, which delicates to avoid codes repetition, and then the next two functions are really similar,
+        so I consider using a helper to reduce code repetition.
+        >>> m = Melody("birthday.txt")
+        >>> m.helper(-1)
+        True
+        >>>  m.helper(-1)
+        True
+        >>> m.helper(-1)
+        True
+        >>> m.helper(-1)
+        False
+        
+        >>> m = Melody("birthday.txt")
+        >>> m.helper(1)
+        True
+        >>> m.helper(1)
+        True
+        >>> m.helper(1)
+        True
+        >>> m.helper(1)
+        False
+        
+        >>> s = Melody("my_song.txt")
+        >>> s.helper(-1)
+        True
+        >>> s.helper(-1)
+        False
+        """
+        for i in self.notes:
+            if i.pitch == "R":
+                continue
+            else:
+                if num == 1:
+                    if i.octave == 1:
+                        return False
+                elif num == -1:
+                    if i.octave == 7:
+                        return False
+                    
+        for j in self.notes:
+            if num == 1:
+                j.octave -= num
+            elif num == -1:
+                j.octave -= num
+        return True
+    
+    def lower_octave(self):
+        """ () -> Boolean
+        An instance method lower_octave which takes no explicit inputs. It reduces the octave of all notes
+        in the song by 1 and returns True. However, a note’s octave cannot be reduced below 1. If that would happen, then do not lower any octaves and instead return False.
+        >>> birthday = Melody("birthday.txt")
+        >>> birthday.lower_octave()
+        True
+        >>> birthday.lower_octave()
+        True
+        >>> birthday.lower_octave()
+        True
+        >>> birthday.lower_octave()
+        False
+        
+        >>> hotcrossbuns = Melody("hotcrossbuns.txt")
+        >>> hotcrossbuns.lower_octave()
+        True
+        >>> hotcrossbuns.lower_octave()
+        True
+        >>> hotcrossbuns.lower_octave()
+        True
+        >>> hotcrossbuns.lower_octave()
+        False
+        
+        >>> twinkle = Melody("twinkle.txt")
+        >>> twinkle.lower_octave()
+        True
+        >>> twinkle.lower_octave()
+        True
+        >>> twinkle.lower_octave()
+        True
+        >>> twinkle.lower_octave()
+        False
+        """
+        return self.helper(1)
+        
+    
+    def upper_octave(self):
+        """ () -> Boolean
+        An instance method upper_octave which takes no explicit inputs. It increases the octave of all notesin the song by 1 and returns True. However, a note’s octave cannot be increased past 7. If that
+        would happen, then do not increase any octaves and instead return False.
+        >>> birthday = Melody("birthday.txt")
+        >>> birthday.upper_octave()
+        True
+        >>> birthday.upper_octave()
+        True
+        >>> birthday.upper_octave()
+        False
+        
+        >>> hotcrossbus = Melody("hotcrossbuns.txt")
+        >>> hotcrossbus.upper_octave()
+        True
+        >>> hotcrossbus.upper_octave()
+        True
+        >>> hotcrossbus.upper_octave()
+        True
+        >>> hotcrossbus.upper_octave()
+        False
+        
+        >>> twinkle = Melody("twinkle.txt")
+        >>> twinkle.upper_octave()
+        True
+        >>> twinkle.upper_octave()
+        True
+        >>> twinkle.upper_octave()
+        True
+        >>> twinkle.upper_octave()
+        False
+        """
+        return self.helper(-1)
+
+    
+    def change_tempo(self, speed):
+        """ (float) -> NoneType
+        An instance method change_tempo which takes one positive float as explicit input and returns
+        nothing. It should multiply the duration of each note by the given float.
+        >>> birthday = Melody("birthday.txt")
+        >>> birthday.get_total_duration()
+        15.0
+        >>> birthday.change_tempo(0.5)
+        >>> birthday.get_total_duration()
+        7.5
+        >>> birthday.change_tempo(8.0)
+        >>> birthday.get_total_duration()
+        60.0
+        
+        >>> twinkle = Melody("twinkle.txt")
+        >>> twinkle.get_total_duration()
+        24.5
+        >>> twinkle.change_tempo(3.0)
+        >>> twinkle.get_total_duration()
+        121.5
+        
+        >>> hotcrossbuns = Melody("hotcrossbuns.txt")
+        >>> hotcrossbuns.change_tempo(0.8)
+        >>> hotcrossbuns.get_total_duration()
+        5.440000000000002
+        >>> hotcrossbuns.change_tempo(5.0)
+        >>> hotcrossbuns.get_total_duration()
+        104.00000000000001
+        """
+        if type(speed) != float or speed < 0:
+            raise AssertionError("speed should be a possitive float")
+        for i in self.notes:
+            i.duration = i.duration * speed
+        
+from note import Note
+from note import player
+import musicalbeeps
+class Melody:
+    """a class Melody which will store information about a melody of many notes, and operations to perform on them
+    Then it creates some instance attributes:
+        * title: str
+        * author: str
+        * notes: list
+        """
+    
+    def __init__(self, file_name):
+        """A constructor that takes a filename (string) as explicit input.
+        >>> m = Melody("birthday.txt")
+        >>> m.title
+        'Happy Birthday'
+        >>>m.author
+        'Patty and Mildred J. Hill'
+ 
+        >>> s = Melody("my_song")
+        >>> s.author
+        'Jay Chou'
+        >>>s.title
+        'Qing Hua Ci (Blue and White Porcelain)'
+        
+        >>> h = Melody("hotcrossbuns.txt")
+        >>> h.title
+        'Hot Cross Buns'
+        >>> h.author
+        'Traditional'
+        """
+        song = open(file_name, 'r')
+        lyrics = song.read()
+        song.close()
+        self.title = lyrics[:lyrics.find('\n')]
+        lyrics = lyrics[len(self.title) + 1:]
+        self.author = lyrics[:lyrics.find('\n')]
+        lyrics = lyrics[len(self.author) + 1:]
+        lyrics_list = lyrics.split("\n")
+ 
+        self.notes = []
+        i = 0
+        meet1 = ':)'
+        meet2 = ':)'
+        for line in lyrics_list:
+            note_list = line.split(" ")
+            if note_list[1] == "R":
+                duration = note_list[0]
+                pitch = note_list[1]
+                repeat = note_list[2]
+                note = Note(float(duration), pitch)
+            else:    
+                duration = note_list[0]
+                pitch = note_list[1]
+                octave = note_list[2]
+                accidental = note_list[3]
+                repeat = note_list[4]
+                note = Note(float(duration), pitch, int(octave), accidental.lower())
+            if repeat == 'true' and meet1 == ':)':
+                meet1 = i
+            elif repeat == 'true':
+                meet2 = i
+            self.notes.append(note)
+            if meet1 !=':)' and meet2 != ':)':
+                for num in range(meet1,meet2+1):
+                    self.notes.append(self.notes[num])
+                    i += 1
+                meet1 = ':)' 
+                meet2 = ':)' 
+            i += 1
+ 
+    
+    def play(self, player):
+        """ (player) -> NoneType
+        takes a music player object as explicit input, and calls the play method on each Note object of the notes instance
+        attribute in order, passing the music player object time as argument.
+        """
+        for note in self.notes:
+            note.play(player)
+        
+        
+    def get_total_duration(self):
+        """ () -> float
+        takes no explicit inputs and returns the total duration of the song as a float.
+        >>> m = Melody("birthday.txt")
+        >>> m.get_total_duration()
+        15.0
+        
+        >>> s = Melody("my_song.txt")
+        >>> s.get_total_duration()
+        143.75
+        
+        >>> h = Melody("hotcrossbuns.txt")
+        >>> h.get_total_duration()
+        8.0
+        """
+        total_duration = 0
+        for i in self.notes:
+            total_duration += i.duration
+        return total_duration
+    
+    def helper(self, num):
+        """ (int) -> Boolean
+        This is a helper function, which delicates to avoid codes repetition, and then the next two functions are really similar,
+        so I consider using a helper to reduce code repetition.
+        >>> m = Melody("birthday.txt")
+        >>> m.helper(-1)
+        True
+        >>>  m.helper(-1)
+        True
+        >>> m.helper(-1)
+        True
+        >>> m.helper(-1)
+        False
+        
+        >>> m = Melody("birthday.txt")
+        >>> m.helper(1)
+        True
+        >>> m.helper(1)
+        True
+        >>> m.helper(1)
+        True
+        >>> m.helper(1)
+        False
+        
+        >>> s = Melody("my_song.txt")
+        >>> s.helper(-1)
+        True
+        >>> s.helper(-1)
+        False
+        """
+        for i in self.notes:
+            if i.pitch == "R":
+                continue
+            else:
+                if num == 1:
+                    if i.octave == 1:
+                        return False
+                elif num == -1:
+                    if i.octave == 7:
+                        return False
+                    
+        for j in self.notes:
+            if num == 1:
+                j.octave -= num
+            elif num == -1:
+                j.octave -= num
+        return True
+    
+    def lower_octave(self):
+        """ () -> Boolean
+        An instance method lower_octave which takes no explicit inputs. It reduces the octave of all notes
+        in the song by 1 and returns True. However, a note’s octave cannot be reduced below 1. If that would happen, then do not lower any octaves and instead return False.
+        >>> birthday = Melody("birthday.txt")
+        >>> birthday.lower_octave()
+        True
+        >>> birthday.lower_octave()
+        True
+        >>> birthday.lower_octave()
+        True
+        >>> birthday.lower_octave()
+        False
+        
+        >>> hotcrossbuns = Melody("hotcrossbuns.txt")
+        >>> hotcrossbuns.lower_octave()
+        True
+        >>> hotcrossbuns.lower_octave()
+        True
+        >>> hotcrossbuns.lower_octave()
+        True
+        >>> hotcrossbuns.lower_octave()
+        False
+        
+        >>> twinkle = Melody("twinkle.txt")
+        >>> twinkle.lower_octave()
+        True
+        >>> twinkle.lower_octave()
+        True
+        >>> twinkle.lower_octave()
+        True
+        >>> twinkle.lower_octave()
+        False
+        """
+        return self.helper(1)
+        
+    
+    def upper_octave(self):
+        """ () -> Boolean
+        An instance method upper_octave which takes no explicit inputs. It increases the octave of all notesin the song by 1 and returns True. However, a note’s octave cannot be increased past 7. If that
+        would happen, then do not increase any octaves and instead return False.
+        >>> birthday = Melody("birthday.txt")
+        >>> birthday.upper_octave()
+        True
+        >>> birthday.upper_octave()
+        True
+        >>> birthday.upper_octave()
+        False
+        
+        >>> hotcrossbus = Melody("hotcrossbuns.txt")
+        >>> hotcrossbus.upper_octave()
+        True
+        >>> hotcrossbus.upper_octave()
+        True
+        >>> hotcrossbus.upper_octave()
+        True
+        >>> hotcrossbus.upper_octave()
+        False
+        
+        >>> twinkle = Melody("twinkle.txt")
+        >>> twinkle.upper_octave()
+        True
+        >>> twinkle.upper_octave()
+        True
+        >>> twinkle.upper_octave()
+        True
+        >>> twinkle.upper_octave()
+        False
+        """
+        return self.helper(-1)
+ 
+    
+    def change_tempo(self, speed):
+        """ (float) -> NoneType
+        An instance method change_tempo which takes one positive float as explicit input and returns
+        nothing. It should multiply the duration of each note by the given float.
+        >>> birthday = Melody("birthday.txt")
+        >>> birthday.get_total_duration()
+        15.0
+        >>> birthday.change_tempo(0.5)
+        >>> birthday.get_total_duration()
+        7.5
+        >>> birthday.change_tempo(8.0)
+        >>> birthday.get_total_duration()
+        60.0
+        
+        >>> twinkle = Melody("twinkle.txt")
+        >>> twinkle.get_total_duration()
+        24.5
+        >>> twinkle.change_tempo(3.0)
+        >>> twinkle.get_total_duration()
+        121.5
+        
+        >>> hotcrossbuns = Melody("hotcrossbuns.txt")
+        >>> hotcrossbuns.change_tempo(0.8)
+        >>> hotcrossbuns.get_total_duration()
+        5.440000000000002
+        >>> hotcrossbuns.change_tempo(5.0)
+        >>> hotcrossbuns.get_total_duration()
+        104.00000000000001
+        """
+        if type(speed) != float or speed < 0:
+            raise AssertionError("speed should be a possitive float")
+        for i in self.notes:
+            i.duration = i.duration * speed 
